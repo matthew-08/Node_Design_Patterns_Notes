@@ -5,28 +5,29 @@
 //  concurrency
 
 const asyncMap = async (collection, callback, concurrency = 2) => {
-  const userCollection = collection;
-  const concurrencyLimit = concurrency;
+  let running = 0;
   const results = [];
   return new Promise((outerResolve, outerReject) => {
-    let unfinishedPromises = 0;
     const doTask = () => {
-      console.log('doing task', unfinishedPromises);
-      unfinishedPromises += 1;
+      running += 1;
       return new Promise(async (resolve, reject) => {
-        results.push(await callback(userCollection.shift()));
-        unfinishedPromises -= 1;
-        if (userCollection.length) {
+        const result = await callback(collection.shift());
+        results.push(result);
+        running -= 1;
+        if (collection.length) {
           doTask();
         }
-        if (unfinishedPromises) {
-          resolve();
-        } else {
+        if (!running) {
           outerResolve(results);
         }
+        resolve();
       });
     };
-    for (let i = 0; i < concurrencyLimit; i++) {
+    for (
+      let i = 0;
+      i < (concurrency > collection.length ? collection.length : concurrency);
+      i++
+    ) {
       doTask();
     }
   });
