@@ -1,0 +1,12 @@
+{
+  "name": "url-params",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "slug": "^8.2.3"
+  }
+}
