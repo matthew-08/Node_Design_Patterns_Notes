@@ -16,7 +16,7 @@ fs.readFile('./test.txt', (err, data) => {
 ajaxCall((data) => console.log(data))
 
 
-const b = Boolean
+const v = Boolean
 
 // enlightened
 function filter  (userCallback, array ) {
