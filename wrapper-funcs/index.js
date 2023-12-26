@@ -16,11 +16,14 @@ fs.readFile('./test.txt', (err, data) => {
 ajaxCall((data) => console.log(data))
 
 
+const test = Boolean
 
 // enlightened
 function filter  (userCallback, array ) {
   for ( let i = 0; i <= array.length; i++ ) {
     userCallback(array[i])
+    // normally this would be something like (e) => Boolean(e)
+    // but now it's just Boolean(e)
   }
 
 }
