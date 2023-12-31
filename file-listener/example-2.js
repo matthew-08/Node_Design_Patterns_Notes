@@ -1,37 +1,42 @@
-const fs = require('fs')
+const fs = require('fs');
+const cache = {};
 
-const cache = new Map()
-
-const fileReader = (filePath) => {
-    const listeners = []
-
-    if (cache.has(filePath)) {
-        return cache.get(filePath)
-    }
-    else {
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                throw new Error(err)
-            }
-            listeners.forEach((listener) => listener(data))
-            cache.set(filePath, data)
-        })
-    }
-
-    return {
-        onDataReady: (listener) => listeners.push(listener)
+function inconsistentRead(filename, callback) {
+    if (cache[filename]) {
+        console.log("load from cache")
+        callback(cache[filename]);
+    } else {
+        fs.readFile(filename, 'utf8', function (err, data) {
+            cache[filename] = data;
+            callback(data);
+        });
     }
 }
 
-const reader = fileReader('./test.txt')
+function createFileReader(filename) {
+    const listeners = [];
+    inconsistentRead(filename, function (value) {
+        console.log("inconsistentRead CB")
+        listeners.forEach(function (listener) {
+            listener(value);
+        });
+    });
+    return {
+        onDataReady: function (listener) {
+            console.log("onDataReady")
+            listeners.push(listener);
+        }
+    };
+}
 
-reader.onDataReady((data) => console.log(`Data in first ${data}`))
-reader.onDataReady((data) => console.log(`Data in second ${data}`))
+const reader1 = createFileReader('./data.txt');
+reader1.onDataReady(function (data) {
+    console.log('First call data: ' + data);
+})
 
-const reader2 = fileReader('./test.txt')
-
-reader2.onDataReady((data) => console.log(`Data in reader 2 first: ${data}`))
-reader2.onDataReady((data) => console.log(`Data in reader 2 second: ${data}`))
-reader2.onDataReady((data) => console.log(`Data in reader 2 third: ${data}`))
-reader2.onDataReady((data) => console.log(`Data in reader 2 fourth: ${data}`))
-reader2.onDataReady((data) => console.log(`Data in reader 2 fifth: ${data}`))
+setTimeout(function () {
+    const reader2 = createFileReader('./data.txt');
+    reader2.onDataReady(function (data) {
+        console.log('Second call data: ' + data);
+    })
+}, 100)
