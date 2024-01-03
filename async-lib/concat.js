@@ -1,29 +1,28 @@
 
+const { concat: realConcat } = require('async')
 const fs = require('fs')
 
 const concat = (collection, iteratee, callback) => {
-    let index = 0
     const result = []
-    const iterate = () => {
-        const item = collection[index]
-        iteratee(item, (data) => {
-            result.push(data)
-            index++
-            if (index === collection.length) {
+    
+    collection.forEach((item) => {
+        iteratee(item, (err, data) => {
+            if (err) {
+                return callback(err)
+            }
+            result.push(...data)
+            if (result.length === collection.length) {
                 return callback(null, result)
             }
-            iterate()
         })
+    })
 
-    }
-    iterate()
 }
 
 
-concat([1, 2, 3], (item, cb) => {
-    setTimeout(() => {
-        cb(item)
-    }, 1000)
-}, (err, results) => {
+concat(['./dir-1', './dir-2', './dir-3'], fs.readdir, (err, results) => {
+    if (err) console.error(err)
     console.log(results)
 })
+
+console.log('some sync stuff')
