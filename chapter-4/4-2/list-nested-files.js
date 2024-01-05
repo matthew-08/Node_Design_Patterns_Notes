@@ -1,55 +1,35 @@
 const { readdir } = require("fs")
 
 
-const topLevel = []
-const getDirectoryContents = (dir, cb) => {
-    const directories = []
-    const files = []
-    readdir(dir, { recursive: true, withFileTypes: true, encoding: 'utf-8' }, (err, data) => {
-        if (err) {
-            return cb(err)
-        }
-        data.forEach(dirent => {
+const listNestedFiles = (dir, searchTerm, cb) => {
+
+    const traversedFiles = []
+    let directoryCount = 0
+
+    fs.readdir(dir, { withFileTypes: true }, (err, dirents) => {
+        dirents.forEach((dirent, index) => {
             if (dirent.isDirectory()) {
-                directories.push(dir + '/' + dirent.name)
+                directoryCount += 1
+                searchDirectory(
+                    createNestedDirectory(dir, dirent.name), 
+                    searchTerm, 
+                    (results) => {
+                        console.log('test')
+                        directoryCount -= 1
+                        traversedFiles.push(...results)
+                        cb(traversedFiles)
+                })
             }
             else {
-                files.push(dirent.name)
+                traversedFiles.push(dirent.name)
+                if (index === dirents.length - 1 && directoryCount === 0) {
+                    cb(traversedFiles)
+                }
             }
         })
-        cb([{ directories, files }])
     })
 
 }
-
-
-const crawl = (fileConents, cb) => {  
-    if (!fileConents[0].directories.length) {
-        cb(fileConents)
-    }
-    
-    let completed = 0
-
-    const results = []
-    fileConents[0].directories.forEach(dir => listNestedFiles(dir, (data) => {
-        completed++
-        if (completed === fileConents[0].directories.length) {
-            cb(data)
-        }
-    }))
-}
-
-
-const listNestedFiles = (dir, cb) => {
-    getDirectoryContents(dir, (data) => {
-        crawl(data, (newData) => {
-            cb(newData.concat(data))
-        })
-    })
-}
-
-listNestedFiles('./test', (d) => console.log(d))
-
 
 
 // 1st call listNestedFile (./test, (d) => consolke.log(d))

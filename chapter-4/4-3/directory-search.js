@@ -1,52 +1,38 @@
 const fs = require('fs')
 
 
-class DirectorySearcher {
-    constructor(stringToMatch, directories, callback) {
-        this.directories = directories
-        this.stringToMatch = stringToMatch
-        this.results = []
-        this.callback = callback
-    }
+const results = []
 
-    addDirectory(directory) {
-        this.directories.push(directory)
-    }
-    searchFile(file) {
-        this.processingFiles = true
-        fs.readFile(file, 'utf-8', (err, data) => {
-            if (data && data.includes(this.stringToMatch)) {
-                this.results.push(file)
-            }
-            this.processingFiles = false
-            this.checkDone()
-        }) 
-    }
-    searchDirectories() {
-        while (this.directories.length) {
-            const directory = this.directories.shift()
-            fs.readdir(directory, { withFileTypes: true }, (err, files) => {
-                files.forEach((file) => {
-                    if (file.isDirectory()) {
-                        this.directories.push(directory + '/' + file.name)
-                        process.nextTick(this.searchDirectories.bind(this))
-                    }
-                    this.searchFile.bind(this, directory + '/' + file.name)()
+const createNestedDirectory = (dir, nestedDir) => dir + '/' + nestedDir 
+
+const searchDirectory = (dir, searchTerm, cb) => {
+
+    const traversedFiles = []
+    let directoryCount = 0
+
+    fs.readdir(dir, { withFileTypes: true }, (err, dirents) => {
+        dirents.forEach((dirent, index) => {
+            if (dirent.isDirectory()) {
+                directoryCount += 1
+                searchDirectory(
+                    createNestedDirectory(dir, dirent.name), 
+                    searchTerm, 
+                    (results) => {
+                        console.log('test')
+                        directoryCount -= 1
+                        traversedFiles.push(...results)
+                        cb(traversedFiles)
                 })
-                process.nextTick(this.checkDone.bind(this))
-            })
-        }
-    }
-    checkDone() {
-        if (!this.directories.length && !this.processingFiles) {
-            this.callback(this.results)
-        }
-    }
+            }
+            else {
+                traversedFiles.push(dirent.name)
+                if (index === dirents.length - 1 && directoryCount === 0) {
+                    cb(traversedFiles)
+                }
+            }
+        })
+    })
 
 }
 
-const dirSearcher = new DirectorySearcher('batman', ['./test-dir'], (r) => {
-    console.log(r)
-})
-
-dirSearcher.searchDirectories()
+searchDirectory('./test-dir', 'batman', (r) => console.log(r))
