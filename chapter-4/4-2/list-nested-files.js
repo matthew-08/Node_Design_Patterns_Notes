@@ -1,36 +1,43 @@
-const { readdir } = require("fs")
+const fs = require('fs');
 
+const separateFilesAndDir = (dirents) => {
+  return dirents.reduce(
+    (acc, dirent) => {
+      if (dirent.isDirectory()) {
+        acc.directories.push(dirent.name);
+      } else {
+        acc.files.push(dirent.name);
+      }
+      return acc;
+    },
+    { directories: [], files: [] }
+  );
+};
 
-const listNestedFiles = (dir, searchTerm, cb) => {
+function listNestedFiles(dir, fb) {
+  const results = [];
 
-    const traversedFiles = []
-    let directoryCount = 0
-
-    fs.readdir(dir, { withFileTypes: true }, (err, dirents) => {
-        dirents.forEach((dirent, index) => {
-            if (dirent.isDirectory()) {
-                directoryCount += 1
-                searchDirectory(
-                    createNestedDirectory(dir, dirent.name), 
-                    searchTerm, 
-                    (results) => {
-                        console.log('test')
-                        directoryCount -= 1
-                        traversedFiles.push(...results)
-                        cb(traversedFiles)
-                })
-            }
-            else {
-                traversedFiles.push(dirent.name)
-                if (index === dirents.length - 1 && directoryCount === 0) {
-                    cb(traversedFiles)
-                }
-            }
+  function iterateDir(dir, cb) {
+    fs.readdir(dir, { withFileTypes: true }, (err, dirStream) => {
+      if (err) return cb(err);
+      const { directories, files } = separateFilesAndDir(dirStream);
+      results.push(...files);
+      if (!directories.length) {
+        return cb();
+      }
+      let dirs = directories.length;
+      directories.forEach((nestedDir) =>
+        iterateDir(dir + '/' + nestedDir, () => {
+          dirs -= 1;
+          if (dirs === 0) {
+            return cb(results);
+          }
         })
-    })
+      );
+    });
+  }
 
+  iterateDir(dir, fb);
 }
 
-
-// 1st call listNestedFile (./test, (d) => consolke.log(d))
-    // 2nd call listNestedFile(./dir-2, (data) => completed ++, if (completed===...)
+listNestedFiles('./test', (r) => console.log(r, 'results'));
