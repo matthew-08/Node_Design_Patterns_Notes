@@ -1,32 +1,36 @@
-const fs = require("fs")
+const fs = require("fs/promises")
 
 
 
-const taskOne = (cb) => {
-    setTimeout(() => {
-        const fileName = './test.txt'
-        cb(fileName)
-    }, 500)
+const taskOne = () => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const fileName = './test.txt'
+            resolve(fileName)
+        }, 500)
+    })
 }
 
-const taskTwo = (cb) => {
-    setTimeout(() => {
-        cb()
-    }, 2000)
+const taskTwo = () => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve()
+        }, 500)
+    })
 }
 
 
 const doAsyncStuff = (finalCallback) => {
-    taskOne((fileName) => {
-        fs.readFile(fileName, (err, data) => {
-            if (err) {
-                return finalCallback(err)
-            }
-            taskTwo(() => {
-                finalCallback(data.toString())
-            }) 
+    let rs = null
+    taskOne()
+        .then((result) => {
+            return fs.readFile(result)
         })
-    })    
+        .then(result => {
+            rs = result
+            return taskTwo()
+        })
+        .then(() => finalCallback(rs))
 }
 
 doAsyncStuff((r) => console.log(r))
