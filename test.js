@@ -1,16 +1,23 @@
-const fs = require('fs');
+class TestPromise {
+  constructor(then) {
+    this.then = then;
+  }
 
-const promisify = (oldApi) => {
-  return (...args) => {
-    return new Promise((resolve, reject) => {
-      oldApi(...args, (err, data) => {
-        if (err) reject(err);
-        resolve(data.toString());
-      });
-    });
-  };
-};
+  map(mapper) {
+    return new TestPromise((resolve, reject) =>
+      this.then((x) => resolve(mapper(x)), reject)
+    );
+  }
+}
 
-const readFilePromise = promisify(fs.readFile);
+const promise = new TestPromise((resolve, reject) => {
+  setTimeout(() => resolve(10), 1000);
+});
 
-readFilePromise('.gitignore').then((r) => console.log(r));
+promise
+  .map((e) => e + 1)
+  .map((v) => v + 2)
+  .map((w) => w + 2)
+  .then((r) => console.log(r));
+
+setTimeout(() => null, 100);

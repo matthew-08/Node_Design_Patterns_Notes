@@ -1,11 +1,10 @@
-import { disableMock, enableMock } from './fs-mock.js'
-import { readFile } from 'fs'
-import { syncBuiltinESMExports } from 'module'
+import { disableMock, enableMock } from './fs-mock.js';
+import { readFile } from 'fs';
+import { syncBuiltinESMExports } from 'module';
 
+syncBuiltinESMExports();
+enableMock('hello from mocked fs module');
 
-enableMock('hello from mocked fs module')
+console.log(readFile('./test'));
 
-readFile('./test', (data) => {
-    console.log(data)
-})
-disableMock()
+disableMock();
