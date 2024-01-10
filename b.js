@@ -24,11 +24,6 @@ const test = async () => {
   }
 };
 
-const logTest = () => console.log(test);
-
-const h = test();
-console.log(h);
-
 // Why this can cause an unhandledRejection:
 
 // In this example, the two async functions are invoked sychronously
@@ -46,8 +41,8 @@ console.log(h);
 
 const unsafeAsync = async () => {
   try {
-    const p1 = async();
-    const p2 = async();
+    const p1 = await async();
+    const p2 = await async();
 
     await p1;
     await p2;
@@ -57,3 +52,5 @@ const unsafeAsync = async () => {
     console.log('finally');
   }
 };
+
+unsafeAsync();
