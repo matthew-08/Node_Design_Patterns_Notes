@@ -33,3 +33,10 @@ class TransformString extends Transform {
 rs.pipe(new TransformString({}, 'world', 'node.js')).pipe(
   fs.createWriteStream('./dest.txt')
 );
+
+
+const server = createServer((req, res ) => {
+    console.log(req)
+})
+
+server.listen(8000, () => console.log('running'))
