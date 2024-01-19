@@ -1,5 +1,5 @@
 function ConstructorFunction() {}
 
 ConstructorFunction.staticMethod = function () {
-  return 2;
+  return 1;
 };
