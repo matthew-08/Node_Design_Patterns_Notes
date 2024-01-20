@@ -10,6 +10,7 @@ class LineSplitterStream extends Transform {
   constructor(options: any = {}) {
     super({
       ...options,
+      objectMode: true,
     });
     this._line = '';
     this._tail = '';
@@ -39,23 +40,58 @@ class LineSplitterStream extends Transform {
     }
 
     this._tail = str ?? '';
-    this.push(Buffer.from(lines.join('')));
+    this.push(lines);
     callback();
   }
   _flush(callback: TransformCallback): void {
-    this.push(this._tail);
+    this.push([this._tail]);
     callback();
   }
 }
 
-class ReplaceStrStream {}
+class ReplaceStrStream extends Transform {
+  replaceStr: string;
+  replacement: string;
+  constructor(options: any = {}, replaceStr: string, replacement: string) {
+    super({
+      ...options,
+      objectMode: true,
+    });
+
+    this.replaceStr = replaceStr;
+    this.replacement = replacement;
+  }
+
+  _transform(
+    chunk: string[],
+    encoding: BufferEncoding,
+    callback: TransformCallback
+  ): void {
+    if (!Array.isArray(chunk)) {
+      throw new Error(
+        `Replace stream expected array but received ${typeof chunk}`
+      );
+    }
+
+    this.push(
+      chunk.map((s) => s.replace(this.replaceStr, this.replacement)).join('\n')
+    );
+
+    callback();
+  }
+
+  _flush(callback: TransformCallback): void {
+    callback();
+  }
+}
 
 pipeline(
   fs.createReadStream(process.argv[2], {
     highWaterMark: 500,
   }),
   new LineSplitterStream(),
-  fs.createWriteStream('./dest.txt'),
+  new ReplaceStrStream({}, 'hello', 'node.js'),
+  fs.createWriteStream(process.argv[3]),
   (err) => {
     if (err) {
       console.error(err);
