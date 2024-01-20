@@ -74,7 +74,9 @@ class ReplaceStrStream extends Transform {
     }
 
     this.push(
-      chunk.map((s) => s.replace(this.replaceStr, this.replacement)).join('\n')
+      chunk
+        .map((s) => s.replace(this.replaceStr, this.replacement))
+        .join('\n') + '\n'
     );
 
     callback();
@@ -90,7 +92,7 @@ pipeline(
     highWaterMark: 500,
   }),
   new LineSplitterStream(),
-  new ReplaceStrStream({}, 'hello', 'node.js'),
+  new ReplaceStrStream({}, 'hello', 'world.js'),
   fs.createWriteStream(process.argv[3]),
   (err) => {
     if (err) {
