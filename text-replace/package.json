@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@types/pumpify": "^1.4.4",
+    "pumpify": "^2.0.1",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
