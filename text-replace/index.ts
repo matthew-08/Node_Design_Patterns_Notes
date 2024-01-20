@@ -27,16 +27,11 @@ class LineSplitterStream extends Transform {
   ) {
     const lines = [];
     let str: string = this._tail + chunk.toString();
-    let done = false;
-    while (!done) {
-      const newLineIndex = str.indexOf('\n');
-      if (newLineIndex === -1) {
-        done = true;
-        continue;
-      }
-
+    let newLineIndex = str.indexOf('\n');
+    while (newLineIndex !== -1) {
       lines.push(str.slice(0, newLineIndex));
       str = str.slice(newLineIndex + 1);
+      newLineIndex = str.indexOf('\n');
     }
 
     this._tail = str ?? '';
@@ -92,7 +87,7 @@ pipeline(
     highWaterMark: 500,
   }),
   new LineSplitterStream(),
-  new ReplaceStrStream({}, 'hello', 'world.js'),
+  new ReplaceStrStream({}, 'replace me', 'hello world'),
   fs.createWriteStream(process.argv[3]),
   (err) => {
     if (err) {
