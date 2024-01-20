@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { Transform, TransformCallback, pipeline } from 'stream';
+import { TransformToLine } from './line-replace.js';
 
 console.log(process.argv[2]);
 
@@ -7,7 +8,9 @@ class LineSplitterStream extends Transform {
   private _line: string;
   private _tail: string;
   constructor(options: any = {}) {
-    super();
+    super({
+      ...options,
+    });
     this._line = '';
     this._tail = '';
   }
@@ -22,15 +25,12 @@ class LineSplitterStream extends Transform {
     callback: TransformCallback
   ) {
     const lines = [];
-    let str: string = chunk.toString();
-
+    let str: string = this._tail + chunk.toString();
     let done = false;
     while (!done) {
-      console.log(this._tail.toString(), 'tail', str);
       const newLineIndex = str.indexOf('\n');
       if (newLineIndex === -1) {
         done = true;
-        lines.push(str);
         continue;
       }
 
@@ -38,16 +38,21 @@ class LineSplitterStream extends Transform {
       str = str.slice(newLineIndex + 1);
     }
 
-    if (str) {
-      this._tail = str;
-    }
+    this._tail = str ?? '';
+    this.push(Buffer.from(lines.join('')));
+    callback();
+  }
+  _flush(callback: TransformCallback): void {
+    this.push(this._tail);
     callback();
   }
 }
 
+class ReplaceStrStream {}
+
 pipeline(
   fs.createReadStream(process.argv[2], {
-    highWaterMark: 400,
+    highWaterMark: 500,
   }),
   new LineSplitterStream(),
   fs.createWriteStream('./dest.txt'),
@@ -57,7 +62,3 @@ pipeline(
     }
   }
 );
-// take in stream of text
-// transform stream 1 - split the stream of text into lines
-// transform stream 2 - replace the word passed as an argument 1
-// write to dest passed as arg 2
