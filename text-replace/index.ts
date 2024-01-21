@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { Transform, TransformCallback, pipeline } from 'stream';
-import { TransformToLine } from './line-replace.js';
+import { TransformToLine } from './test/line-replace.js';
 
 console.log(process.argv[2]);
 
