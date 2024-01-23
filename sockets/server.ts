@@ -18,15 +18,13 @@ const HEADER_SIZE = 4;
 
 const server = new Server((socket) => {
   let dataLength: number = 0;
-  let accumulatingBuffer: Buffer;
+  let accumulatingBuffer: Buffer = Buffer.alloc(0);
   socket.on('readable', () => {
-    if (!dataLength && !socket.read(4)) {
-      return;
-    }
-
-    const chunk: Buffer = socket.read();
+    const chunk: Buffer = socket.read(4);
     if (!dataLength) {
-      dataLength = chunk.readInt8(0);
+      if (!chunk) return;
+      dataLength = chunk.readUint32BE(0);
+      console.log(dataLength);
     }
     let tempBuffer = Buffer.alloc(chunk.length + accumulatingBuffer.length);
 
@@ -35,27 +33,39 @@ const server = new Server((socket) => {
 
     accumulatingBuffer = tempBuffer;
 
-    while (accumulatingBuffer.length - HEADER_SIZE >= dataLength) {
+    let done = accumulatingBuffer.length - HEADER_SIZE >= dataLength;
+    while (!done) {
       // pull out data from packet
       const data = Buffer.alloc(dataLength);
       accumulatingBuffer.copy(data, 0, HEADER_SIZE, dataLength);
       handleCompleteMessage(data);
 
+      console.log(accumulatingBuffer.length);
+      console.log(dataLength);
       const tempBuffer = Buffer.alloc(
         accumulatingBuffer.length - (HEADER_SIZE + dataLength)
       );
+      console.log(tempBuffer, 'temptemp');
 
       accumulatingBuffer.copy(tempBuffer, 0, HEADER_SIZE + dataLength);
 
       accumulatingBuffer = tempBuffer;
 
       if (accumulatingBuffer.length > 4) {
-        dataLength = accumulatingBuffer.readInt8(0);
+        dataLength = accumulatingBuffer.readUint32BE(0);
+        done = accumulatingBuffer.length - HEADER_SIZE >= dataLength;
+      } else {
+        dataLength = 0;
+        done = true;
       }
     }
   });
 });
 
 function handleCompleteMessage(result: Buffer) {
-  console.log(result.toString());
+  console.log(`User message: ${result.toString()}`);
 }
+
+server.listen(3000, () =>
+  console.log('Server listening on port localhost:3000')
+);
