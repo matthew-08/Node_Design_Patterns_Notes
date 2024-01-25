@@ -29,14 +29,14 @@ const server = new Server((socket) => {
 
     const chunk = socket.read();
     if (!chunk) return;
+
     let tempBuffer = Buffer.alloc(chunk.length + accumulatingBuffer.length);
 
     accumulatingBuffer.copy(tempBuffer);
     chunk.copy(tempBuffer, accumulatingBuffer.length);
 
     accumulatingBuffer = tempBuffer;
-    let packetAvailable = accumulatingBuffer.length - HEADER_SIZE >= dataLength;
-    while (packetAvailable) {
+    while (accumulatingBuffer.length - HEADER_SIZE >= dataLength) {
       // pull out data from packet
       const data = Buffer.alloc(dataLength);
       accumulatingBuffer.copy(data, 0, HEADER_SIZE, dataLength + HEADER_SIZE);
@@ -51,12 +51,12 @@ const server = new Server((socket) => {
 
       if (accumulatingBuffer.length > 4) {
         dataLength = accumulatingBuffer.readUint32BE(0);
-        packetAvailable = accumulatingBuffer.length - HEADER_SIZE >= dataLength;
-      } else {
-        dataLength = 0;
-        accumulatingBuffer = Buffer.alloc(4);
-        packetAvailable = false;
       }
+    }
+
+    if (!accumulatingBuffer.length) {
+      dataLength = 0;
+      accumulatingBuffer = Buffer.alloc(4);
     }
   });
 });
