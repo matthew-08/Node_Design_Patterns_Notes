@@ -33,8 +33,10 @@ var server = net.createServer(function (socket) {
     data.copy(tmpBuffer, accumulatingLen); // offset for accumulating
     // tmpBuffer [24,24,24,24]
     accumulatingBuffer = tmpBuffer;
+    // [24,24,24,24]
     tmpBuffer = null;
     accumulatingLen += recvedThisTimeLen;
+    // 4
     console.log('accumulatingBuffer = ' + accumulatingBuffer);
     console.log('accumulatingLen    =' + accumulatingLen);
 
