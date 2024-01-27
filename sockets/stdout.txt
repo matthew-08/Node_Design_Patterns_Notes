@@ -1,0 +1,3 @@
+this is going to stdout
+this is also going to stdout
+wow amazing stdout

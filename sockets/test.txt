@@ -1,0 +1,6 @@
+this is going to stdout
+this is also going to stdout
+wow amazing stdout
+this is going to stderr
+this is also going to stderr
+wow amazing stderr

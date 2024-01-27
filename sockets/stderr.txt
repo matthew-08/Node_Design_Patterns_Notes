@@ -1,0 +1,5 @@
+this is going to stderr
+this is also going to stderr
+wow amazing stderr - abc
+wow amazing stderr - abc
+wow amazing stderr - abc
