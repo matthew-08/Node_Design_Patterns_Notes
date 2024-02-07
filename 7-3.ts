@@ -9,7 +9,6 @@ class Queue {
     executor(this._enqueue.bind(this));
   }
   private _enqueue(data: any) {
-    console.log('enqueieng');
     if (this._awaitingDequeue) {
       this._awaitingDequeue(data);
     } else {

@@ -5,5 +5,4 @@ console.error('this is also going to stderr');
 console.log('wow amazing stdout');
 console.error('wow amazing stderr - abc');
 console.error('wow amazing stderr - abc');
-
 console.error('wow amazing stderr - abc');
