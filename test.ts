@@ -10,7 +10,7 @@ let target: ((...args: unknown[]) => unknown) | null = null;
 class Dep {
   private subscribers: ((...args: unknown[]) => unknown)[];
 
-  subscribe(cb: (...args: unknown[]) => unknown) {
+  subscribe() {
     if (target && !this.subscribers.includes(target))
       this.subscribers.push(target);
   }
@@ -25,13 +25,18 @@ const reactiveObject = {
 };
 
 Object.keys(reactiveObject).forEach((key) => {
-  const internalValue = reactiveObject[key];
+  let internalValue = reactiveObject[key];
 
   const dep = new Dep();
 
   Object.defineProperty(reactiveObject, key, {
     get() {
       dep.subscribe();
+      return internalValue
+    },
+    set(v) {
+        internalValue = v
+        dep.notify()
     },
   });
 });
